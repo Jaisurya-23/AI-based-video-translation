@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>TamilVoice — Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Instrument+Sans:ital,wght@0,400;0,500;1,400&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#06060a;--s1:#0e0e16;--s2:#161622;--s3:#1b1b28;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.04);
+  --acc:#f97316;--acc2:#fbbf24;--text:#eeecf0;--muted:#5a5968;
+  --green:#22c55e;--red:#ef4444;--yellow:#eab308;--r:14px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Instrument Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+.blob{position:fixed;border-radius:50%;filter:blur(90px);pointer-events:none;z-index:0;}
+.blob-1{width:600px;height:400px;top:-120px;left:-150px;background:rgba(249,115,22,0.05);}
+.blob-2{width:400px;height:300px;bottom:-60px;right:-80px;background:rgba(251,191,36,0.04);}
+
+.wrap{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 24px 80px;}
+
+/* Nav */
+nav{display:flex;align-items:center;justify-content:space-between;padding:28px 0 36px;flex-wrap:wrap;gap:12px;}
+.nav-left{display:flex;align-items:center;gap:14px;}
+.nav-brand{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;
+  background:linear-gradient(135deg,var(--acc),var(--acc2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.admin-tag{font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  padding:3px 10px;border-radius:100px;background:rgba(239,68,68,.1);
+  border:1px solid rgba(239,68,68,.2);color:var(--red);}
+.btn-sm{font-size:.78rem;font-weight:600;padding:6px 14px;border-radius:100px;
+  border:1px solid var(--border);background:transparent;color:var(--muted);
+  cursor:pointer;text-decoration:none;transition:all .2s;font-family:inherit;display:inline-flex;align-items:center;gap:5px;}
+.btn-sm:hover{color:var(--text);border-color:rgba(255,255,255,.15);}
+
+/* Header */
+.page-head{margin-bottom:28px;animation:up .5s ease both;}
+.page-head h2{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;margin-bottom:4px;}
+.page-head p{font-size:.84rem;color:var(--muted);}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px;animation:up .55s .05s ease both;}
+@media(max-width:700px){.stats{grid-template-columns:repeat(2,1fr);}}
+.stat-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;}
+.stat-n{font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;
+  background:linear-gradient(135deg,var(--acc),var(--acc2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;}
+.stat-l{font-size:.73rem;color:var(--muted);margin-top:4px;}
+
+/* Tabs */
+.tabs-row{display:flex;gap:2px;background:var(--s1);border:1px solid var(--border);
+  border-radius:100px;padding:3px;width:fit-content;margin-bottom:20px;animation:up .6s .1s ease both;}
+.tab-btn{padding:8px 20px;border-radius:100px;font-size:.8rem;font-weight:600;
+  cursor:pointer;border:none;background:transparent;color:var(--muted);
+  transition:all .2s;font-family:inherit;}
+.tab-btn.active{background:var(--s3);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.4);}
+
+/* Table card */
+.table-card{background:var(--s1);border:1px solid var(--border);border-radius:22px;
+  overflow:hidden;animation:up .65s .15s ease both;}
+.table-card-head{padding:16px 20px;border-bottom:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:space-between;}
+.table-card-title{font-family:'Syne',sans-serif;font-size:.9rem;font-weight:800;}
+.table-card-sub{font-size:.75rem;color:var(--muted);}
+
+.tab-content{display:none;} .tab-content.active{display:block;}
+
+table{width:100%;border-collapse:collapse;}
+th{font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted);padding:12px 20px;text-align:left;background:var(--s2);
+  border-bottom:1px solid var(--border2);}
+td{padding:12px 20px;font-size:.82rem;border-bottom:1px solid var(--border2);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(249,115,22,.02);}
+
+.status-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;
+  border-radius:100px;font-size:.68rem;font-weight:600;}
+.status-active{background:rgba(34,197,94,.1);color:var(--green);}
+.status-disabled{background:rgba(239,68,68,.1);color:var(--red);}
+.status-done{background:rgba(34,197,94,.1);color:var(--green);}
+.status-processing{background:rgba(249,115,22,.1);color:var(--acc);}
+.status-error{background:rgba(239,68,68,.1);color:var(--red);}
+.status-dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+.role-admin{background:rgba(239,68,68,.08);color:var(--red);padding:2px 8px;
+  border-radius:100px;font-size:.68rem;font-weight:700;}
+.role-user{background:var(--s3);color:var(--muted);padding:2px 8px;
+  border-radius:100px;font-size:.68rem;font-weight:600;}
+
+.action-btn{display:inline-flex;align-items:center;gap:4px;font-size:.72rem;
+  font-weight:600;padding:4px 10px;border-radius:100px;border:1px solid var(--border);
+  background:transparent;cursor:pointer;transition:all .2s;font-family:inherit;}
+.btn-disable{color:var(--yellow);border-color:rgba(234,179,8,.2);}
+.btn-disable:hover{background:rgba(234,179,8,.07);}
+.btn-enable{color:var(--green);border-color:rgba(34,197,94,.2);}
+.btn-enable:hover{background:rgba(34,197,94,.07);}
+.btn-del{color:var(--red);border-color:rgba(239,68,68,.2);}
+.btn-del:hover{background:rgba(239,68,68,.07);}
+
+@keyframes up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:600px){
+  th:nth-child(3),td:nth-child(3),
+  th:nth-child(4),td:nth-child(4){display:none;}
+}
+</style>
+</head>
+<body>
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+
+<div class="wrap">
+  <nav>
+    <div class="nav-left">
+      <span class="nav-brand">TamilVoice</span>
+      <span class="admin-tag">Admin</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="font-size:.8rem;color:var(--muted);">👤 <span style="color:var(--text);font-weight:600;">{{ admin_username }}</span></div>
+      <a href="/logout" class="btn-sm">Sign Out</a>
+    </div>
+  </nav>
+
+  <div class="page-head">
+    <h2>Admin Dashboard</h2>
+    <p>Monitor users and video processing activity.</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-n">{{ users | length }}</div>
+      <div class="stat-l">Total Users</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-n">{{ users | selectattr('is_active') | list | length }}</div>
+      <div class="stat-l">Active Users</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-n">{{ total_videos }}</div>
+      <div class="stat-l">Total Videos</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-n">{{ done_videos }}</div>
+      <div class="stat-l">Completed</div>
+    </div>
+  </div>
+
+  <!-- Tab buttons -->
+  <div class="tabs-row">
+    <button class="tab-btn active" onclick="showTab('users',this)">👥 Users</button>
+    <button class="tab-btn" onclick="showTab('videos',this)">🎬 All Videos</button>
+  </div>
+
+  <!-- Users table -->
+  <div class="table-card">
+
+    <div class="tab-content active" id="tab-users">
+      <div class="table-card-head">
+        <div>
+          <div class="table-card-title">User Management</div>
+          <div class="table-card-sub">{{ users | length }} registered users</div>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Joined</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td style="font-weight:600;">{{ u.username }}</td>
+            <td style="color:var(--muted);font-size:.78rem;">{{ u.email }}</td>
+            <td><span class="role-{{ u.role }}">{{ u.role }}</span></td>
+            <td style="color:var(--muted);font-size:.76rem;font-family:'JetBrains Mono',monospace;">
+              {{ u.created_at.strftime('%d %b %Y') if u.created_at else '—' }}
+            </td>
+            <td>
+              <span class="status-badge {% if u.is_active %}status-active{% else %}status-disabled{% endif %}">
+                <span class="status-dot"></span>
+                {% if u.is_active %}Active{% else %}Disabled{% endif %}
+              </span>
+            </td>
+            <td>
+              {% if u.role != 'admin' %}
+              <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <form method="POST" action="/admin/toggle/{{ u.id }}" style="display:inline;">
+                  <button type="submit"
+                    class="action-btn {% if u.is_active %}btn-disable{% else %}btn-enable{% endif %}">
+                    {% if u.is_active %}Disable{% else %}Enable{% endif %}
+                  </button>
+                </form>
+                <form method="POST" action="/admin/delete/{{ u.id }}" style="display:inline;"
+                      onsubmit="return confirm('Delete user {{ u.username }}? This cannot be undone.')">
+                  <button type="submit" class="action-btn btn-del">Delete</button>
+                </form>
+              </div>
+              {% else %}
+              <span style="font-size:.75rem;color:var(--muted);">Protected</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Videos table -->
+    <div class="tab-content" id="tab-videos">
+      <div class="table-card-head">
+        <div>
+          <div class="table-card-title">All Video Jobs</div>
+          <div class="table-card-sub">{{ history | length }} total jobs</div>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>File</th>
+            <th>Segments</th>
+            <th>Date</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for h in history %}
+          <tr>
+            <td style="font-weight:600;">{{ h.username }}</td>
+            <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+                       color:var(--muted);font-size:.78rem;">{{ h.original_filename or '—' }}</td>
+            <td style="font-family:'JetBrains Mono',monospace;font-size:.76rem;color:var(--muted);">
+              {{ h.segment_count }}
+            </td>
+            <td style="color:var(--muted);font-size:.76rem;font-family:'JetBrains Mono',monospace;">
+              {{ h.created_at.strftime('%d %b %Y') if h.created_at else '—' }}
+            </td>
+            <td>
+              <span class="status-badge status-{{ h.status }}">
+                <span class="status-dot"></span>
+                {{ h.status | capitalize }}
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function showTab(name, btn){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+}
+</script>
+</body>
+</html>

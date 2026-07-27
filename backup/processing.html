@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>TamilVoice — Processing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Instrument+Sans:ital,wght@0,400;0,500;1,400&family=Noto+Sans+Tamil:wght@400;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#06060a;--s1:#0e0e16;--s2:#13131e;--s3:#1b1b28;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.04);
+  --acc:#f97316;--acc2:#fbbf24;--text:#eeecf0;--muted:#5a5968;
+  --green:#22c55e;--red:#ef4444;--blue:#60a5fa;--r:14px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Instrument Sans',sans-serif;background:var(--bg);color:var(--text);
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;}
+
+.blob{position:fixed;border-radius:50%;filter:blur(100px);pointer-events:none;z-index:0;}
+.blob-1{width:500px;height:350px;top:-100px;left:-120px;background:rgba(249,115,22,0.07);}
+.blob-2{width:400px;height:300px;bottom:-60px;right:-80px;background:rgba(251,191,36,0.05);}
+
+.wrap{position:relative;z-index:1;width:100%;max-width:900px;padding:0 24px 80px;}
+
+/* Nav */
+nav{display:flex;align-items:center;justify-content:space-between;padding:32px 0 40px;}
+.nav-brand{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;
+  background:linear-gradient(135deg,var(--acc),var(--acc2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.nav-back{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:var(--muted);
+  text-decoration:none;padding:6px 14px;border:1px solid var(--border);border-radius:100px;
+  transition:color .2s,border-color .2s;}
+.nav-back:hover{color:var(--text);border-color:rgba(255,255,255,.15);}
+
+/* Status badge */
+.status-bar{display:flex;align-items:center;gap:16px;margin-bottom:28px;animation:up .5s ease both;}
+.status-icon{width:42px;height:42px;border-radius:12px;
+  background:linear-gradient(135deg,rgba(249,115,22,.15),rgba(251,191,36,.08));
+  border:1px solid rgba(249,115,22,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.status-icon svg{width:20px;height:20px;color:var(--acc);}
+.status-info h2{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;margin-bottom:2px;}
+.status-info p{font-size:.82rem;color:var(--muted);}
+
+/* Progress card */
+.prog-card{background:var(--s1);border:1px solid var(--border);border-radius:20px;
+  padding:24px;margin-bottom:24px;animation:up .55s .05s ease both;}
+.prog-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.prog-label{font-size:.85rem;font-weight:500;color:var(--text);}
+.prog-pct{font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;color:var(--acc);}
+
+.track{height:7px;background:var(--s3);border-radius:100px;overflow:hidden;}
+.fill{height:100%;border-radius:100px;
+  background:linear-gradient(90deg,var(--acc),var(--acc2));
+  transition:width .6s cubic-bezier(.4,0,.2,1);width:0%;}
+
+.prog-msg{margin-top:12px;font-size:.8rem;color:var(--muted);
+  display:flex;align-items:center;gap:8px;}
+.spin{width:11px;height:11px;border:2px solid rgba(249,115,22,.2);
+  border-top-color:var(--acc);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0;}
+
+/* Error */
+.err-card{background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.22);
+  border-radius:var(--r);padding:18px 20px;display:none;
+  align-items:flex-start;gap:12px;margin-bottom:20px;}
+.err-card svg{width:18px;height:18px;color:var(--red);flex-shrink:0;margin-top:1px;}
+.err-card p{font-size:.85rem;color:#fca5a5;line-height:1.5;}
+
+/* Two-column layout */
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;animation:up .6s .1s ease both;}
+@media(max-width:680px){.cols{grid-template-columns:1fr;}}
+
+.panel{background:var(--s1);border:1px solid var(--border);border-radius:20px;
+  overflow:hidden;display:flex;flex-direction:column;}
+.panel-head{padding:16px 20px;border-bottom:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.panel-title{font-family:'Syne',sans-serif;font-size:.85rem;font-weight:700;
+  display:flex;align-items:center;gap:8px;}
+.panel-title .badge{font-family:'Instrument Sans',sans-serif;font-size:.7rem;font-weight:500;
+  padding:2px 8px;border-radius:100px;background:var(--s3);color:var(--muted);}
+.panel-count{font-size:.72rem;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+.seg-list{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:6px;
+  max-height:440px;scrollbar-width:thin;scrollbar-color:var(--s3) transparent;}
+.seg-list::-webkit-scrollbar{width:4px;}
+.seg-list::-webkit-scrollbar-track{background:transparent;}
+.seg-list::-webkit-scrollbar-thumb{background:var(--s3);border-radius:4px;}
+
+.seg{padding:10px 12px;border-radius:10px;background:var(--s2);
+  border:1px solid var(--border2);animation:segIn .3s ease both;}
+.seg-time{font-family:'JetBrains Mono',monospace;font-size:.67rem;
+  color:var(--acc);margin-bottom:4px;opacity:.7;}
+.seg-text{font-size:.82rem;line-height:1.5;color:var(--text);}
+.seg-text.tamil{font-family:'Noto Sans Tamil',sans-serif;font-size:.85rem;}
+
+/* Empty state */
+.empty{padding:32px 20px;text-align:center;color:var(--muted);font-size:.8rem;
+  display:flex;flex-direction:column;align-items:center;gap:10px;}
+.empty-ring{width:36px;height:36px;border:2px dashed rgba(249,115,22,.2);
+  border-radius:50%;animation:rotate 3s linear infinite;}
+
+/* Done section */
+.done-banner{display:none;background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);
+  border-radius:20px;padding:24px 28px;text-align:center;animation:up .4s ease both;
+  margin-bottom:20px;}
+.done-banner h3{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;
+  color:var(--green);margin-bottom:8px;}
+.done-banner p{font-size:.84rem;color:var(--muted);margin-bottom:18px;}
+.btn-group{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+
+.btn{font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;
+  letter-spacing:.02em;padding:11px 26px;border-radius:100px;border:none;
+  cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:7px;
+  text-decoration:none;}
+.btn-pri{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#070709;}
+.btn-pri:hover{filter:brightness(1.1);}
+.btn-out{background:transparent;color:var(--text);border:1px solid var(--border);}
+.btn-out:hover{background:var(--s2);border-color:rgba(255,255,255,.14);}
+
+@keyframes up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes rotate{to{transform:rotate(360deg)}}
+@keyframes segIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+
+<div class="wrap">
+  <nav>
+    <span class="nav-brand">TamilVoice</span>
+    <a href="/" class="nav-back">
+      <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:13px;height:13px">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+      </svg>
+      New video
+    </a>
+  </nav>
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <div class="status-icon">
+      <svg fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5"/>
+      </svg>
+    </div>
+    <div class="status-info">
+      <h2>Generating Tamil Subtitles</h2>
+      <p>Watch the transcription and translation happen live below</p>
+    </div>
+  </div>
+
+  <!-- Error card -->
+  <div class="err-card" id="err-card">
+    <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round"
+        d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+    </svg>
+    <p id="err-msg">An error occurred.</p>
+  </div>
+
+  <!-- Done banner -->
+  <div class="done-banner" id="done-banner">
+    <h3>✅ Your video is ready!</h3>
+    <p>Tamil subtitles have been generated and burned into your video.</p>
+    <div class="btn-group">
+      <a id="watch-link" href="#" class="btn btn-pri">
+        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:15px;height:15px">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z"/>
+        </svg>
+        Watch Video
+      </a>
+      <a id="dl-link" href="#" class="btn btn-out">
+        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+        </svg>
+        Download
+      </a>
+      <a href="/" class="btn btn-out">Process Another</a>
+    </div>
+  </div>
+
+  <!-- Progress card -->
+  <div class="prog-card" id="prog-card">
+    <div class="prog-head">
+      <span class="prog-label" id="prog-label">Starting…</span>
+      <span class="prog-pct" id="prog-pct">0%</span>
+    </div>
+    <div class="track"><div class="fill" id="prog-fill"></div></div>
+    <div class="prog-msg">
+      <div class="spin" id="spin"></div>
+      <span id="prog-msg-text">Initialising pipeline…</span>
+    </div>
+  </div>
+
+  <!-- Two-column live feed -->
+  <div class="cols">
+
+    <!-- English column -->
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">
+          🎙 Transcribed English
+          <span class="badge">Whisper</span>
+        </div>
+        <span class="panel-count" id="eng-count">0 segments</span>
+      </div>
+      <div class="seg-list" id="eng-list">
+        <div class="empty">
+          <div class="empty-ring"></div>
+          Waiting for transcription…
+        </div>
+      </div>
+    </div>
+
+    <!-- Tamil column -->
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">
+          🏷 Translated Tamil
+          <span class="badge">தமிழ்</span>
+        </div>
+        <span class="panel-count" id="ta-count">0 segments</span>
+      </div>
+      <div class="seg-list" id="ta-list">
+        <div class="empty">
+          <div class="empty-ring"></div>
+          Waiting for translation…
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const JOB_ID = "{{ job_id }}";
+let engCount = 0, taCount = 0, firstSeg = true;
+
+const progFill  = document.getElementById('prog-fill');
+const progPct   = document.getElementById('prog-pct');
+const progLabel = document.getElementById('prog-label');
+const progMsg   = document.getElementById('prog-msg-text');
+const engList   = document.getElementById('eng-list');
+const taList    = document.getElementById('ta-list');
+const engCnt    = document.getElementById('eng-count');
+const taCnt     = document.getElementById('ta-count');
+const doneBanner= document.getElementById('done-banner');
+const progCard  = document.getElementById('prog-card');
+const errCard   = document.getElementById('err-card');
+const spin      = document.getElementById('spin');
+
+function setProgress(pct, label, msg){
+  progFill.style.width = pct + '%';
+  progPct.textContent  = pct + '%';
+  progLabel.textContent = label || 'Processing…';
+  progMsg.textContent  = msg || '';
+}
+
+function addSegment(data){
+  // Clear empty state on first segment
+  if(firstSeg){
+    engList.innerHTML = '';
+    taList.innerHTML  = '';
+    firstSeg = false;
+  }
+
+  engCount++; taCount++;
+  engCnt.textContent = engCount + ' segment' + (engCount===1?'':'s');
+  taCnt.textContent  = taCount  + ' segment' + (taCount===1?'':'s');
+
+  const time = data.start + ' → ' + data.end;
+
+  const eSeg = document.createElement('div');
+  eSeg.className = 'seg';
+  eSeg.innerHTML = `<div class="seg-time">${time}</div><div class="seg-text">${escHtml(data.english)}</div>`;
+  engList.appendChild(eSeg);
+  engList.scrollTop = engList.scrollHeight;
+
+  const tSeg = document.createElement('div');
+  tSeg.className = 'seg';
+  tSeg.innerHTML = `<div class="seg-time">${time}</div><div class="seg-text tamil">${escHtml(data.tamil)}</div>`;
+  taList.appendChild(tSeg);
+  taList.scrollTop = taList.scrollHeight;
+}
+
+function showDone(video, jobId){
+  spin.style.display = 'none';
+  setProgress(100, 'Complete!', 'Subtitles burned and video is ready.');
+  doneBanner.style.display = 'block';
+  document.getElementById('watch-link').href = '/watch/' + jobId;
+  document.getElementById('dl-link').href    = '/download/' + video;
+  // auto-redirect after 3 s
+  setTimeout(()=>{ window.location.href = '/watch/' + jobId; }, 3000);
+}
+
+function showError(msg){
+  spin.style.display = 'none';
+  errCard.style.display = 'flex';
+  document.getElementById('err-msg').textContent = msg;
+}
+
+function escHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Connect SSE
+const es = new EventSource('/stream/' + JOB_ID);
+
+es.onmessage = function(e){
+  let data;
+  try{ data = JSON.parse(e.data); } catch{ return; }
+
+  if(data.type === 'ping') return;
+
+  if(data.type === 'progress'){
+    setProgress(data.pct, 'Processing…', data.msg);
+  }
+  else if(data.type === 'segment'){
+    setProgress(data.pct, `Translating segment ${data.index} of ${data.total}`, data.msg || '');
+    addSegment(data);
+  }
+  else if(data.type === 'done'){
+    es.close();
+    showDone(data.video, data.job_id);
+  }
+  else if(data.type === 'error'){
+    es.close();
+    showError(data.msg);
+  }
+};
+
+es.onerror = function(){
+  // SSE dropped — check job status once via form redirect
+  es.close();
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>TamilVoice — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Instrument+Sans:ital,wght@0,400;0,500;1,400&family=Noto+Sans+Tamil:wght@500&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#06060a;--s1:#0e0e16;--s2:#161622;--s3:#1b1b28;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.04);
+  --acc:#f97316;--acc2:#fbbf24;--text:#eeecf0;--muted:#5a5968;
+  --green:#22c55e;--red:#ef4444;--blue:#60a5fa;--r:14px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Instrument Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+.blob{position:fixed;border-radius:50%;filter:blur(90px);pointer-events:none;z-index:0;}
+.blob-1{width:600px;height:400px;top:-120px;left:-150px;background:rgba(249,115,22,0.06);}
+.blob-2{width:500px;height:350px;bottom:-80px;right:-100px;background:rgba(251,191,36,0.04);}
+
+.wrap{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:0 24px 80px;}
+
+/* Nav */
+nav{display:flex;align-items:center;justify-content:space-between;padding:28px 0 36px;flex-wrap:wrap;gap:12px;}
+.nav-brand{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;
+  background:linear-gradient(135deg,var(--acc),var(--acc2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.nav-right{display:flex;align-items:center;gap:10px;}
+.nav-user{font-size:.8rem;color:var(--muted);padding:6px 14px;
+  background:var(--s1);border:1px solid var(--border);border-radius:100px;
+  display:flex;align-items:center;gap:6px;}
+.nav-user span{color:var(--text);font-weight:600;}
+.btn-sm{font-size:.78rem;font-weight:600;padding:6px 14px;border-radius:100px;
+  border:1px solid var(--border);background:transparent;color:var(--muted);
+  cursor:pointer;text-decoration:none;transition:all .2s;font-family:inherit;display:inline-flex;align-items:center;gap:5px;}
+.btn-sm:hover{color:var(--text);border-color:rgba(255,255,255,.15);}
+
+/* Welcome */
+.welcome{margin-bottom:32px;animation:up .5s ease both;}
+.welcome h2{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;margin-bottom:5px;}
+.welcome p{font-size:.85rem;color:var(--muted);}
+
+/* Stats strip */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:28px;animation:up .55s .05s ease both;}
+.stat-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;}
+.stat-n{font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;
+  background:linear-gradient(135deg,var(--acc),var(--acc2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;}
+.stat-l{font-size:.75rem;color:var(--muted);margin-top:4px;}
+
+/* Upload card */
+.upload-card{background:var(--s1);border:1px solid var(--border);border-radius:22px;
+  overflow:hidden;margin-bottom:28px;animation:up .6s .1s ease both;}
+.card-head{padding:18px 24px;border-bottom:1px solid var(--border2);
+  display:flex;align-items:center;gap:10px;}
+.card-head-icon{width:34px;height:34px;border-radius:10px;
+  background:linear-gradient(135deg,rgba(249,115,22,.15),rgba(251,191,36,.07));
+  border:1px solid rgba(249,115,22,.2);display:flex;align-items:center;justify-content:center;}
+.card-head-icon svg{width:16px;height:16px;color:var(--acc);}
+.card-head-title{font-family:'Syne',sans-serif;font-size:.95rem;font-weight:800;}
+.card-head-sub{font-size:.76rem;color:var(--muted);margin-top:1px;}
+
+/* Drop zone */
+.drop{position:relative;padding:40px 32px;display:flex;flex-direction:column;
+  align-items:center;gap:12px;cursor:pointer;transition:background .2s;
+  border-bottom:1px solid var(--border);}
+.drop:hover,.drop.over{background:rgba(249,115,22,.04);}
+.drop input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.icon-box{width:58px;height:58px;border-radius:16px;
+  background:linear-gradient(135deg,rgba(249,115,22,.14),rgba(251,191,36,.07));
+  border:1px solid rgba(249,115,22,.2);display:flex;align-items:center;justify-content:center;
+  transition:transform .3s,box-shadow .3s;}
+.drop:hover .icon-box{transform:translateY(-4px);box-shadow:0 16px 40px rgba(249,115,22,.13);}
+.icon-box svg{width:26px;height:26px;color:var(--acc);}
+.drop-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;text-align:center;}
+.drop-hint{font-size:.78rem;color:var(--muted);text-align:center;}
+.chosen{font-size:.78rem;color:var(--acc);font-weight:500;min-height:14px;text-align:center;}
+
+.foot-row{display:flex;align-items:center;justify-content:space-between;
+  padding:16px 24px;flex-wrap:wrap;gap:10px;}
+.foot-meta{font-size:.76rem;color:var(--muted);}
+.btn-pri{font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;
+  letter-spacing:.02em;padding:11px 26px;border-radius:100px;border:none;
+  cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:7px;
+  background:linear-gradient(135deg,var(--acc),var(--acc2));color:#070709;}
+.btn-pri:hover{filter:brightness(1.1);}
+.btn-pri:disabled{opacity:.35;cursor:not-allowed;filter:none;}
+
+/* History */
+.history-card{background:var(--s1);border:1px solid var(--border);border-radius:22px;
+  overflow:hidden;animation:up .65s .15s ease both;}
+.empty-hist{padding:48px 24px;text-align:center;color:var(--muted);}
+.empty-hist svg{width:40px;height:40px;opacity:.2;margin:0 auto 12px;display:block;}
+.empty-hist p{font-size:.85rem;}
+
+table{width:100%;border-collapse:collapse;}
+th{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted);padding:12px 20px;text-align:left;background:var(--s2);
+  border-bottom:1px solid var(--border2);}
+td{padding:13px 20px;font-size:.83rem;border-bottom:1px solid var(--border2);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(249,115,22,.025);}
+
+.status-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;
+  border-radius:100px;font-size:.7rem;font-weight:600;}
+.status-done{background:rgba(34,197,94,.1);color:var(--green);}
+.status-processing{background:rgba(249,115,22,.1);color:var(--acc);}
+.status-error{background:rgba(239,68,68,.1);color:var(--red);}
+.status-dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+
+.action-link{display:inline-flex;align-items:center;gap:4px;font-size:.76rem;
+  font-weight:600;color:var(--acc);text-decoration:none;padding:4px 10px;
+  border-radius:100px;border:1px solid rgba(249,115,22,.2);transition:all .2s;}
+.action-link:hover{background:rgba(249,115,22,.08);}
+
+@keyframes up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:600px){
+  .stats{grid-template-columns:1fr 1fr;}
+  th:nth-child(3),td:nth-child(3){display:none;}
+}
+</style>
+</head>
+<body>
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+
+<div class="wrap">
+  <nav>
+    <span class="nav-brand">TamilVoice</span>
+    <div class="nav-right">
+      <div class="nav-user">
+        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:13px;height:13px">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
+        </svg>
+        <span>{{ user.username }}</span>
+      </div>
+      <a href="/logout" class="btn-sm">
+        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:12px;height:12px">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/>
+        </svg>
+        Sign Out
+      </a>
+    </div>
+  </nav>
+
+  <!-- Welcome -->
+  <div class="welcome">
+    <h2>Hey, {{ user.username }} 👋</h2>
+    <p>Upload a video below to generate Tamil, Hindi &amp; English subtitles.</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats">
+    {% set done_count = history | selectattr('status','eq','done') | list | length %}
+    {% set proc_count = history | selectattr('status','eq','processing') | list | length %}
+    <div class="stat-card">
+      <div class="stat-n">{{ history | length }}</div>
+      <div class="stat-l">Total Videos</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-n">{{ done_count }}</div>
+      <div class="stat-l">Completed</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-n">{{ proc_count }}</div>
+      <div class="stat-l">Processing</div>
+    </div>
+  </div>
+
+  <!-- Upload card -->
+  <div class="upload-card">
+    <div class="card-head">
+      <div class="card-head-icon">
+        <svg fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
+        </svg>
+      </div>
+      <div>
+        <div class="card-head-title">New Video</div>
+        <div class="card-head-sub">Generates Tamil · Hindi · English subtitles</div>
+      </div>
+    </div>
+
+    <form method="POST" action="/upload" enctype="multipart/form-data" id="upload-form">
+      <div class="drop" id="drop-zone">
+        <input type="file" name="video" id="file-input"
+               accept="video/mp4,video/avi,video/quicktime,video/webm,video/x-matroska">
+        <div class="icon-box">
+          <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
+          </svg>
+        </div>
+        <div class="drop-title">Drop video here or click to browse</div>
+        <div class="drop-hint">MP4 · AVI · MOV · MKV · WEBM &nbsp;·&nbsp; Max 500 MB</div>
+        <div class="chosen" id="chosen-name"></div>
+      </div>
+
+      <div class="foot-row">
+        <span class="foot-meta" id="foot-meta">No file selected</span>
+        <button class="btn-pri" type="submit" id="go-btn" disabled>
+          <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z"/>
+          </svg>
+          Generate Subtitles
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- History -->
+  <div class="history-card">
+    <div class="card-head" style="padding:16px 20px;">
+      <div class="card-head-icon">
+        <svg fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </div>
+      <div>
+        <div class="card-head-title">My Video History</div>
+        <div class="card-head-sub">{{ history | length }} videos processed</div>
+      </div>
+    </div>
+
+    {% if history %}
+    <table>
+      <thead>
+        <tr>
+          <th>File</th>
+          <th>Status</th>
+          <th>Segments</th>
+          <th>Date</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for h in history %}
+        <tr>
+          <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+            {{ h.original_filename or 'Unknown' }}
+          </td>
+          <td>
+            <span class="status-badge status-{{ h.status }}">
+              <span class="status-dot"></span>
+              {{ h.status | capitalize }}
+            </span>
+          </td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--muted);">
+            {{ h.segment_count }}
+          </td>
+          <td style="color:var(--muted);font-size:.78rem;">
+            {{ h.created_at.strftime('%d %b %Y') if h.created_at else '—' }}
+          </td>
+          <td>
+            {% if h.status == 'done' %}
+            <a href="/watch/{{ h.job_id }}" class="action-link">
+              <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:11px;height:11px">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z"/>
+              </svg>
+              Watch
+            </a>
+            {% else %}
+            <span style="font-size:.76rem;color:var(--muted);">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-hist">
+      <svg fill="none" viewBox="0 0 24 24" stroke-width="1.2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0112 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M13.125 12h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125M20.625 12c.621 0 1.125.504 1.125 1.125v1.5m-9.75-1.5h-7.5"/>
+      </svg>
+      <p>No videos yet. Upload your first video above!</p>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<script>
+const inp  = document.getElementById('file-input');
+const drop = document.getElementById('drop-zone');
+const btn  = document.getElementById('go-btn');
+const nameEl = document.getElementById('chosen-name');
+const meta = document.getElementById('foot-meta');
+
+function setFile(file){
+  nameEl.textContent = file.name;
+  meta.textContent = file.name + ' · ' + (file.size/1024/1024).toFixed(1) + ' MB';
+  btn.disabled = false;
+}
+inp.addEventListener('change', ()=>{ if(inp.files[0]) setFile(inp.files[0]); });
+drop.addEventListener('dragover', e=>{ e.preventDefault(); drop.classList.add('over'); });
+drop.addEventListener('dragleave', ()=> drop.classList.remove('over'));
+drop.addEventListener('drop', e=>{
+  e.preventDefault(); drop.classList.remove('over');
+  const f = e.dataTransfer.files[0];
+  if(f){ inp.files = e.dataTransfer.files; setFile(f); }
+});
+document.getElementById('upload-form').addEventListener('submit', ()=>{
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Uploading…';
+});
+</script>
+</body>
+</html>

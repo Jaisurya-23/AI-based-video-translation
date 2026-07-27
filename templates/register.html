@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>TamilVoice — Create Account</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Instrument+Sans:ital,wght@0,400;0,500;1,400&family=Noto+Sans+Tamil:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#06060a;--s1:#0e0e16;--s2:#161622;--s3:#1b1b28;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.04);
+  --acc:#f97316;--acc2:#fbbf24;--text:#eeecf0;--muted:#5a5968;
+  --green:#22c55e;--red:#ef4444;--r:14px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Instrument Sans',sans-serif;background:var(--bg);color:var(--text);
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;}
+
+.blob{position:fixed;border-radius:50%;filter:blur(90px);pointer-events:none;z-index:0;}
+.blob-1{width:600px;height:400px;top:-120px;left:-150px;background:rgba(249,115,22,0.08);} 
+.blob-2{width:500px;height:350px;bottom:-80px;right:-100px;background:rgba(251,191,36,0.05);} 
+
+.page{position:relative;z-index:1;width:100%;max-width:420px;padding:40px;display:grid;gap:20px;align-items:center;min-height:100vh;}
+
+.auth-card{background:var(--s1);border:1px solid var(--border);border-radius:22px;overflow:hidden;animation:up .65s .1s ease both;box-shadow:0 32px 80px rgba(0,0,0,.5);}
+.brand-top{padding:28px 28px 0;display:flex;align-items:center;justify-content:center;gap:10px;}
+.brand-name{font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800;background:linear-gradient(135deg,var(--acc),var(--acc2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.form-body{padding:24px 28px 28px;}
+.form-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;margin-bottom:4px;}
+.form-sub{font-size:.78rem;color:var(--muted);margin-bottom:20px;}
+.field{margin-bottom:14px;}label{display:block;font-size:.78rem;font-weight:600;color:rgba(238,236,240,.55);margin-bottom:6px;letter-spacing:.02em;}input{width:100%;padding:11px 14px;background:var(--s2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:.88rem;font-family:inherit;transition:border-color .2s,box-shadow .2s;outline:none;}input:focus{border-color:rgba(249,115,22,.4);box-shadow:0 0 0 3px rgba(249,115,22,.08);}input::placeholder{color:var(--muted);} 
+.err-msg{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:10px 14px;font-size:.78rem;color:#fca5a5;margin-bottom:14px;display:flex;align-items:center;gap:8px;} 
+.btn-submit{width:100%;padding:13px;border-radius:100px;border:none;cursor:pointer;font-family:'Syne',sans-serif;font-weight:800;font-size:.9rem;letter-spacing:.02em;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#070709;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;} 
+.divider{text-align:center;font-size:.73rem;color:var(--muted);margin:14px 0;position:relative;} 
+.switch-link{text-align:center;font-size:.78rem;color:var(--muted);} 
+.switch-link a{color:var(--acc);font-weight:600;text-decoration:none}
+@keyframes up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+
+<div class="page">
+  <div class="auth-card">
+    <div class="brand-top">
+      <span class="brand-name">TamilVoice</span>
+    </div>
+    <div class="form-body">
+      <div class="form-title">Create account</div>
+      <div class="form-sub">Join TamilVoice and start generating subtitles.</div>
+
+      {% if reg_error %}
+      <div class="err-msg">{{ reg_error }}</div>
+      {% endif %}
+
+      <form method="POST" action="/register">
+        <div class="field">
+          <label>Username</label>
+          <input type="text" name="username" placeholder="cool_username" required autocomplete="username" pattern="[a-zA-Z0-9_]+" title="Letters, numbers and underscores only"/>
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" name="email" placeholder="you@email.com" required autocomplete="email"/>
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" name="password" placeholder="Min 4 characters" required minlength="4"/>
+        </div>
+        <div class="field">
+          <label>Confirm Password</label>
+          <input type="password" name="confirm" placeholder="Repeat password" required/>
+        </div>
+        <button class="btn-submit" type="submit">Create Account</button>
+      </form>
+
+      <div class="divider">or</div>
+      <div class="switch-link">Already have an account? <a href="/login">Sign in</a></div>
+    </div>
+    <div style="text-align:center;padding:14px 0 20px;color:rgba(238,236,240,.12);font-family:'Noto Sans Tamil',sans-serif;">தமிழ் · हिन्दी · English</div>
+  </div>
+
+  <div style="text-align:center;margin-top:14px;"><a href="/">← Back to Home</a></div>
+</div>
+</body>
+</html>
